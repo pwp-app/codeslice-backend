@@ -1,9 +1,7 @@
 <div align="center">
 <img src="https://github.com/pwp-app/codeslice-frontend/blob/master/assets/codeslice.png?raw=true" width="96">
-<h1>CodeSlice</h1>
+<h1>CodeSlice (Server)</h1>
 </div>
-
-# codeslice-server
 
 该项目是CodeSlice的后端，基于egg.js编写。
 
