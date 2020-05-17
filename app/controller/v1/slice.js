@@ -1,8 +1,8 @@
 'use strict';
 
 const Controller = require('egg').Controller;
-const SuccessResponse = require('../../utils/common/success_response');
-const ErrorResponse = require('../../utils/common/error_response');
+const SuccessResponse = require('../../../utils/common/success_response');
+const ErrorResponse = require('../../../utils/common/error_response');
 const crypto = require('crypto');
 
 class SliceController extends Controller {
