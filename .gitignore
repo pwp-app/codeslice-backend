@@ -13,3 +13,5 @@ run/
 typings/
 .nyc_output/
 .vscode
+.github
+keys.js

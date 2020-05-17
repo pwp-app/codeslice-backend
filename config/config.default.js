@@ -2,29 +2,82 @@
 
 'use strict';
 
-/**
- * @param {Egg.EggAppInfo} appInfo app info
- */
-module.exports = appInfo => {
-  /**
-   * built-in config
-   * @type {Egg.EggAppConfig}
-   **/
-  const config = exports = {};
+const keys = require('./keys');
 
-  // use for cookie sign key, should change to your own and keep security
-  config.keys = appInfo.name + '_1589700524498_6833';
+module.exports = () => {
+    /**
+     * built-in config
+     * @type {Egg.EggAppConfig}
+     **/
+    const config = (exports = {});
 
-  // add your middleware config here
-  config.middleware = [];
+    config.cluster = {
+        listen: {
+            path: '',
+            port: 7701,
+            hostname: '0.0.0.0',
+        },
+    };
 
-  // add your user config here
-  const userConfig = {
-    // myAppName: 'egg',
-  };
+    config.security = {
+        xframe: {
+            value: 'SAMEORIGIN',
+        },
+        csrf: {
+            enable: false,
+        },
+        domainWhiteList: ['http://localhost:8000', 'https://codeslice.pwp.app'],
+    };
 
-  return {
-    ...config,
-    ...userConfig,
-  };
+    config.cors = {
+        allowMethods: 'GET,POST',
+    };
+
+    config.onerror = {
+        all: (err, ctx) => {
+            if (ctx.status === 422) {
+                ctx.body = JSON.stringify({
+                    code: 422,
+                    status: 'error',
+                    message: 'Request validation failed.',
+                });
+            } else {
+                ctx.body = JSON.stringify({
+                    code: 500,
+                    status: 'error',
+                    message: 'Unknown internal error occured.',
+                });
+            }
+            // 统一视为正常回复，用code区分错误
+            ctx.set({
+                'Content-Type': 'application/json',
+            });
+            ctx.status = 200;
+        },
+    };
+
+    config.redis = {
+        client: {
+            port: 6379,
+            host: '127.0.0.1',
+            password: keys.redis,
+            db: 1,
+        },
+    };
+
+    // use for cookie sign key, should change to your own and keep security
+    config.keys = keys.cookie;
+
+    // add your middleware config here
+    config.middleware = ['notfoundHandler'];
+
+    // add your user config here
+    const userConfig = {
+        appName: 'codeslice-server',
+    };
+
+    return {
+        ...config,
+        ...userConfig,
+    };
 };
