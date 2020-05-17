@@ -29,6 +29,11 @@ class RedisService extends Service {
         }
         return data;
     }
+
+    async del(key) {
+        const { redis } = this.app;
+        return await redis.del(key);
+    }
 }
 
 module.exports = RedisService;

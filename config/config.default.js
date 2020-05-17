@@ -33,6 +33,11 @@ module.exports = () => {
         allowMethods: 'GET,POST',
     };
 
+    config.validate = {
+        convert: true,
+        widelyUndefined: true,
+    };
+
     config.onerror = {
         all: (err, ctx) => {
             if (ctx.status === 422) {
