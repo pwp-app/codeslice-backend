@@ -3,7 +3,7 @@
 const Controller = require('egg').Controller;
 const SuccessResponse = require('../../../utils/common/success_response');
 const ErrorResponse = require('../../../utils/common/error_response');
-const crypto = require('crypto');
+const crc = require('node-crc');
 
 class SliceController extends Controller {
     async submit() {
@@ -28,8 +28,7 @@ class SliceController extends Controller {
             return ErrorResponse(ctx, 400, '系统检测到您可能为机器人，提交失败');
         }
         // 计算内容Hash
-        const sha1 = crypto.createHmac('sha1', 'CodeSlice');
-        const key = sha1.update(`${Math.random()}_${new Date().getTime()}_${content}`).digest('hex');
+        const key = crc.crc64(Buffer.from(`${content}_${new Date().getTime()}`, 'utf-8')).toString('hex');
         // 提交至redis
         if (await this.service.redis.set(`slice-${key}`, {
             poster: poster ? poster : null,
@@ -46,7 +45,7 @@ class SliceController extends Controller {
         const { ctx } = this;
         ctx.validate({ key: 'string' }, ctx.query);
         const key = ctx.query.key.trim();
-        if (key.length !== 40) {
+        if (key.length !== 16) {
             return ErrorResponse(ctx, 422, '参数不合法');
         }
         // 检查存在
