@@ -10,7 +10,7 @@ class SliceController extends Controller {
         const { ctx } = this;
         // 数据校验
         ctx.validate({ content: 'string', expires: 'number', token: 'string', poster: 'string?' });
-        const poster = ctx.request.body.author;
+        const poster = ctx.request.body.poster;
         if (poster && poster.length > 30) {
             return ErrorResponse(ctx, 422, '署名不得超过30个字符');
         }
