@@ -9,7 +9,7 @@ class SliceController extends Controller {
     async submit() {
         const { ctx } = this;
         // 数据校验
-        ctx.validate({ content: 'string', expires: 'number', poster: 'string?' });
+        ctx.validate({ content: 'string', expires: 'number', token: 'string', poster: 'string?' });
         const poster = ctx.request.body.author;
         if (poster && poster.length > 30) {
             return ErrorResponse(ctx, 422, '署名不得超过30个字符');
@@ -22,6 +22,12 @@ class SliceController extends Controller {
         if (content.length < 1 || content.length > 30000) {
             return ErrorResponse(ctx, 422, '内容长度不属于合法范围');
         }
+        // 验证码
+        const verification = await this.service.recaptcha.verify(ctx.request.body.token);
+        if (!verification) {
+            return ErrorResponse(ctx, 400, '系统检测到您可能为机器人，提交失败');
+        }
+        // 计算内容Hash
         const sha1 = crypto.createHmac('sha1', 'CodeSlice');
         const key = sha1.update(`${Math.random()}_${new Date().getTime()}_${content}`).digest('hex');
         // 提交至redis
@@ -38,19 +44,15 @@ class SliceController extends Controller {
     }
     async get() {
         const { ctx } = this;
-        ctx.validate({ key: 'string' });
+        ctx.validate({ key: 'string' }, ctx.query);
         const key = ctx.query.key.trim();
         if (key.length !== 40) {
             return ErrorResponse(ctx, 422, '参数不合法');
         }
         // 检查存在
-        if (!await this.service.redis.has(key)) {
-            return ErrorResponse(ctx, 404, '内容不存在');
-        }
-        // 获取内容
         const slice = await this.service.redis.get(`slice-${key}`);
         if (!slice) {
-            return ErrorResponse(ctx, 500, '获取失败');
+            return ErrorResponse(ctx, 404, '内容不存在或已过期');
         }
         SuccessResponse(ctx, '获取成功', slice);
     }
